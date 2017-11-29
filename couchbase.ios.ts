@@ -14,7 +14,7 @@ export class Couchbase {
     private manager: any;
     private database: any;
 
-    constructor(databaseName: String, create: boolean, encryptionKey?:string){
+    constructor(databaseName: String, create?: boolean, encryptionKey?:string){
         this.manager = CBLManager.sharedInstance();
         if (!this.manager){
             console.log("MANAGER ERROR:Can not create share instance of CBLManager");
@@ -41,7 +41,7 @@ export class Couchbase {
             return this.database.close();
         }
         catch (exception) {
-            throw "Failed to close db..." + exception;
+            throw "Failed to close the database..." + exception;
         }
     }
     createDocument(data: Object, documentId?: string){

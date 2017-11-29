@@ -11,17 +11,35 @@ export class Couchbase {
     private manager: any;
     private database: any;
 
-    public constructor(databaseName: string) {
+    public constructor(databaseName: String, create?: boolean, encryptionKey?:string) {
         this.context = utils.ad.getApplicationContext();
         try {
-            this.manager = new com.couchbase.lite.Manager(new com.couchbase.lite.android.AndroidContext(this.context), null);
-            this.database = this.manager.getDatabase(databaseName);
+            this.manager = new com.couchbase.lite.Manager(new com.couchbase.lite.android.AndroidContext(this.context), null);            
+            if(encryptionKey){
+                var databaseOptions = new com.couchbase.lite.DatabaseOptions();
+                databaseOptions.setEncryptionKey(encryptionKey);
+                databaseOptions.setCreate(create);
+                this.database = this.manager.openDatabase(databaseName, databaseOptions);
+            } else {
+                this.database = this.manager.getDatabase(databaseName);
+            }
+            if (this.database == null) {
+                throw "Failed to open database nameed:" + databaseName;
+            }
         } catch (exception) {
-            console.error("MANAGER ERROR:", exception.message);
-            throw new Error("MANAGER ERROR: " + exception.message);
+            throw "Failed to create database nameed:" + databaseName + ". " + exception;
         }
     }
 
+    public close() {
+        try { 
+            return this.database.close();
+        }
+        catch (exception) {
+            throw "Failed to close the database..." + exception;
+        }
+    }
+    
     public createDocument(data: Object, documentId?: string) {
         var document: any = documentId == null ? this.database.createDocument() : this.database.getDocument(documentId);
         var documentId: string = document.getId();
