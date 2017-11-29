@@ -29,30 +29,11 @@ export class Couchbase {
             } else {
                 this.database = this.manager.databaseNamedError(databaseName);
             }
-        } catch (exception) {
-            throw "Failed to create database nameed:" + databaseName + ". " + exception;
-        }
-    }
-    openDatabase(databaseName: String, encryptionKey?:string) {
-        this.manager = CBLManager.sharedInstance();
-        if (!this.manager){
-            console.log("MANAGER ERROR:Can not create share instance of CBLManager");
-            throw new Error("MANAGER ERROR:Can not create share instance of CBLManager");
-        }
-        try {
-            if (encryptionKey) {
-                var databaseOptions = new CBLDatabaseOptions();
-                databaseOptions.encryptionKey = encryptionKey;
-                databaseOptions.create = false;
-                this.database = this.manager.openDatabaseNamedWithOptionsError(databaseName, databaseOptions);
-            } else {
-                this.database = this.manager.databaseNamedError(databaseName);
-            }
             if (this.database == null) {
                 throw "Failed to open database nameed:" + databaseName;
             }
         } catch (exception) {
-            throw "Failed to open database nameed:" + databaseName + ". " + exception;
+            throw "Failed to create database nameed:" + databaseName + ". " + exception;
         }
     }
     close() {
