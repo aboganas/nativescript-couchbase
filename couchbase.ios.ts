@@ -14,7 +14,7 @@ export class Couchbase {
     private manager: any;
     private database: any;
 
-    constructor(databaseName: String, create?: boolean, encryptionKey?:string){
+    constructor(databaseName: String, encryptionKey?:string, create?: boolean){
         this.manager = CBLManager.sharedInstance();
         if (!this.manager){
             console.log("MANAGER ERROR:Can not create share instance of CBLManager");

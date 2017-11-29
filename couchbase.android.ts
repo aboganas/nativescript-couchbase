@@ -11,7 +11,7 @@ export class Couchbase {
     private manager: any;
     private database: any;
 
-    public constructor(databaseName: String, create?: boolean, encryptionKey?:string) {
+    public constructor(databaseName: String, encryptionKey?:string, create?: boolean) {
         this.context = utils.ad.getApplicationContext();
         try {
             this.manager = new com.couchbase.lite.Manager(new com.couchbase.lite.android.AndroidContext(this.context), null);            
