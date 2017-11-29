@@ -1,0 +1,1 @@
+OTHER_LDFLAGS = $(inherited) -l"libsqlcipher" -framework "CFNetwork" -framework "CouchbaseLite" -framework "CouchbaseLiteListener" -framework "Security"
