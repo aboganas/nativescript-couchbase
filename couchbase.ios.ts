@@ -7,25 +7,60 @@ declare var NSJSONSerialization: any;
 declare var NSString: any;
 declare var NSJSONWritingPrettyPrinted: any;
 declare var NSUTF8StringEncoding: any;
+declare var CBLDatabaseOptions: any;
 
 export class Couchbase {
 
     private manager: any;
     private database: any;
 
-    constructor(databaseName: String){
+    constructor(databaseName: String, create: boolean, encryptionKey?:string){
         this.manager = CBLManager.sharedInstance();
         if (!this.manager){
             console.log("MANAGER ERROR:Can not create share instance of CBLManager");
             throw new Error("MANAGER ERROR:Can not create share instance of CBLManager");
         }
-        var errorRef = new interop.Reference();
-
-        this.database = this.manager.databaseNamedError(databaseName, errorRef);
-
-        if (!this.database){
-          console.log(errorRef.value);
-          throw new Error(errorRef.value);
+        try {
+            if(encryptionKey){
+                var databaseOptions = new CBLDatabaseOptions();
+                databaseOptions.encryptionKey = encryptionKey;
+                databaseOptions.create = create;
+                this.database = this.manager.openDatabaseNamedWithOptionsError(databaseName, databaseOptions);
+            } else {
+                this.database = this.manager.databaseNamedError(databaseName);
+            }
+        } catch (exception) {
+            throw "Failed to create database nameed:" + databaseName + ". " + exception;
+        }
+    }
+    openDatabase(databaseName: String, encryptionKey?:string) {
+        this.manager = CBLManager.sharedInstance();
+        if (!this.manager){
+            console.log("MANAGER ERROR:Can not create share instance of CBLManager");
+            throw new Error("MANAGER ERROR:Can not create share instance of CBLManager");
+        }
+        try {
+            if (encryptionKey) {
+                var databaseOptions = new CBLDatabaseOptions();
+                databaseOptions.encryptionKey = encryptionKey;
+                databaseOptions.create = false;
+                this.database = this.manager.openDatabaseNamedWithOptionsError(databaseName, databaseOptions);
+            } else {
+                this.database = this.manager.databaseNamedError(databaseName);
+            }
+            if (this.database == null) {
+                throw "Failed to open database nameed:" + databaseName;
+            }
+        } catch (exception) {
+            throw "Failed to open database nameed:" + databaseName + ". " + exception;
+        }
+    }
+    close() {
+        try { 
+            return this.database.close();
+        }
+        catch (exception) {
+            throw "Failed to close db..." + exception;
         }
     }
     createDocument(data: Object, documentId?: string){
