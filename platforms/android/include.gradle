@@ -12,8 +12,8 @@ dependencies {
 
 android {
     productFlavors {
-        "tns-couchbase" {
-            dimension "tns-couchbase"
+        "nativescript-couchbase" {
+            dimension "nativescript-couchbase"
         }
     }
     packagingOptions {
