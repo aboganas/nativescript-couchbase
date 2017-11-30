@@ -11,27 +11,36 @@ export class Couchbase {
     private manager: any;
     private database: any;
 
-    public constructor(databaseName: String, encryptionKey?:string, create?: boolean) {
+    public constructor(databaseName: String, create: boolean = true, encryptionKey?:string) {
         this.context = utils.ad.getApplicationContext();
         try {
-            this.manager = new com.couchbase.lite.Manager(new com.couchbase.lite.android.AndroidContext(this.context), null);            
-            if(encryptionKey){
-                var databaseOptions = new com.couchbase.lite.DatabaseOptions();
-                databaseOptions.setEncryptionKey(encryptionKey);
-                databaseOptions.setCreate(create);
-                this.database = this.manager.openDatabase(databaseName, databaseOptions);
+            if(com.couchbase.lite.Manager.isValidDatabaseName(databaseName)) {
+                this.manager = new com.couchbase.lite.Manager(new com.couchbase.lite.android.AndroidContext(this.context), null);            
+                if(encryptionKey){
+                    var databaseOptions = new com.couchbase.lite.DatabaseOptions();
+                    databaseOptions.setEncryptionKey(encryptionKey);
+                    databaseOptions.setCreate(create);
+                    this.database = this.manager.openDatabase(databaseName, databaseOptions);
+                } else {
+                    if (create) {
+                        this.database = this.manager.getDatabase(databaseName);
+                    } else {
+                        this.database = this.manager.getExistingDatabase(databaseName);
+                    }
+                }
+                if (this.database == null) {
+                    console.log( "can't open database named " + databaseName + ", error log:" );
+                    
+                }   
             } else {
-                this.database = this.manager.getDatabase(databaseName);
-            }
-            if (this.database == null) {
-                throw "Failed to open database nameed:" + databaseName;
+                throw new Error("invalid database name");
             }
         } catch (exception) {
             throw "Failed to create database nameed:" + databaseName + ". " + exception;
         }
     }
 
-    public close() {
+    public closeDatabase() {
         try { 
             return this.database.close();
         }

@@ -14,29 +14,36 @@ export class Couchbase {
     private manager: any;
     private database: any;
 
-    constructor(databaseName: String, encryptionKey?:string, create?: boolean){
-        this.manager = CBLManager.sharedInstance();
-        if (!this.manager){
-            console.log("MANAGER ERROR:Can not create share instance of CBLManager");
-            throw new Error("MANAGER ERROR:Can not create share instance of CBLManager");
-        }
-        try {
-            if(encryptionKey){
+    constructor(databaseName: String, create: boolean = true, encryptionKey?:string){
+        if (CBLManager.isValidDatabaseName(databaseName)) {
+            this.manager = CBLManager.sharedInstance();
+            if (!this.manager){
+                console.log("MANAGER ERROR: Can not create share instance of CBLManager");
+                throw new Error("MANAGER ERROR: Can not create share instance of CBLManager");
+            }
+            var errorRef = new interop.Reference();
+            if (encryptionKey) {
                 var databaseOptions = new CBLDatabaseOptions();
                 databaseOptions.encryptionKey = encryptionKey;
                 databaseOptions.create = create;
-                this.database = this.manager.openDatabaseNamedWithOptionsError(databaseName, databaseOptions);
+                this.database = this.manager.openDatabaseNamedWithOptionsError(databaseName, databaseOptions, errorRef);
             } else {
-                this.database = this.manager.databaseNamedError(databaseName);
+                if (create) {
+                    this.database = this.manager.databaseNamedError(databaseName, errorRef);
+                } else {
+                    if (this.manager.databaseExistsNamed(databaseName)) {
+                        this.database = this.manager.existingDatabaseNamedError(databaseName, errorRef);
+                    }
+                }
             }
-            if (this.database == null) {
-                throw "Failed to open database nameed:" + databaseName;
+            if (!this.database) {
+                console.log( "can't open database named " + databaseName + ", error log:" + errorRef.value);
             }
-        } catch (exception) {
-            throw "Failed to create database nameed:" + databaseName + ". " + exception;
+        } else {
+            throw new Error("invalid database name");
         }
     }
-    close() {
+    closeDatabase() {
         try { 
             return this.database.close();
         }
@@ -46,17 +53,13 @@ export class Couchbase {
     }
     createDocument(data: Object, documentId?: string){
         var doc = documentId == null ? this.database.createDocument() : this.database.documentWithID(documentId);
-
         var documentId: string = doc.documentID;
-
         var errorRef = new interop.Reference();
         var revision  = doc.putPropertiesError(data, errorRef);
-
-        if (!errorRef){
+        if (errorRef.value){
             console.log("DOCUMENT ERROR:" + errorRef.value);
             throw new Error("DOCUMENT ERROR:" + errorRef.value);
         }
-
         return documentId;
     }
 
@@ -76,7 +79,7 @@ export class Couchbase {
       var errorRef = new interop.Reference();
       var revision  = document.putPropertiesError(data, errorRef);
 
-      if (!errorRef){
+      if (errorRef.value){
         console.error("DOCUMENT ERROR", errorRef.value);
         throw new Error("DOCUMENT ERROR " + errorRef.value);
       }
@@ -88,7 +91,7 @@ export class Couchbase {
 
       document.deleteDocument(errorRef);
 
-      if (!errorRef){
+      if (errorRef.value){
         return false;
       }
       return true;
@@ -142,7 +145,7 @@ export class Couchbase {
          row = resultSet.nextRow();
        }
 
-       if (!errorRef){
+       if (errorRef.value){
            console.log(errorRef.value);
        }
 
@@ -207,7 +210,7 @@ export class Couchbase {
 
         this.database.deleteDatabase(errorRef);
 
-        if (!errorRef){
+        if (errorRef.value){
           console.error("DESTROY", errorRef.value);
         }
     }
