@@ -42,10 +42,25 @@ Without the above line included, your TypeScript compiler may throw errors durin
 var couchbaseModule = require("nativescript-couchbase");
 ```
 
-### Creating or Opening an Existing Database
-
+### Creating a Database
+non-encrypted database
 ```javascript
 var database = new couchbaseModule.Couchbase("test-database");
+```
+encrypted database
+```javascript
+var database = new couchbaseModule.Couchbase("test-database", true, "password");
+```
+
+### Opening an Existing Database
+
+non-encrypted database
+```javascript
+var database = new couchbaseModule.Couchbase("test-database", false);
+```
+encrypted database
+```javascript
+var database = new couchbaseModule.Couchbase("test-database", false, "password");
 ```
 
 ### Managing the Data with CRUD Operations
